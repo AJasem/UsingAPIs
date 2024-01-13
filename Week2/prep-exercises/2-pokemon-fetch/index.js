@@ -16,11 +16,21 @@ const VALID_URL = 'https://pokeapi.co/api/v2/pokemon/?limit=5';
 const INVALID_URL = 'https://pokeapi.co/api/v2/pokemons/?limit=5';
 
 async function fetchJSON(url) {
-  // TODO
+  try {
+    // Fetch the JSON data from the web API that responds to the `url` parameter
+    const response = await fetch(url);
 
-  // Fetch the JSON data from the web API that responds to the `url` parameter
-  // and return a promise that resolves to a corresponding JavaScript object.
-  // Make sure to check for HTTP errors.
+    // Check for HTTP errors
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // Parse the response JSON and return the resulting object
+    return await response.json();
+  } catch (error) {
+    // Rethrow the error to be caught by the caller
+    throw error;
+  }
 }
 
 function renderResults(pokemons) {
@@ -29,8 +39,7 @@ function renderResults(pokemons) {
   errorElement.innerText = '';
 
   // 2. Set the text content of the HTML element with id `json` to JSON text
-  //    from the `pokemons` argument, formatted in a human readable form (i.e.,
-  //    with indentation and line breaks).
+  //    from the `pokemons` argument, formatted in a human-readable form.
   const pokemonsElement = document.querySelector('#json');
   pokemonsElement.innerText = JSON.stringify(pokemons, null, 2);
 }
@@ -43,19 +52,25 @@ function renderError(err) {
   // 2. Set the text content of the HTML element with id `error` to the
   //    `.message` property of the `err` parameter.
   const errorElement = document.querySelector('#error');
-  errorElement.innerText = err;
+  errorElement.innerText = err.message;
 }
 
-function main() {
+async function main() {
   const button = document.querySelector('#button');
-  button.addEventListener('click', () => {
+  button.addEventListener('click', async () => {
     const option = document.querySelector('#option');
     const url = option.checked ? INVALID_URL : VALID_URL;
 
-    // TODO
-    // Use `fetchJSON()` to fetch data from the selected url.
-    // If successful, render the data by calling function `renderResults()`.
-    // On failure, render the error by calling function `renderError()`.
+    try {
+      // Use `fetchJSON()` to fetch data from the selected url.
+      const pokemons = await fetchJSON(url);
+
+      // If successful, render the data by calling function `renderResults()`.
+      renderResults(pokemons);
+    } catch (error) {
+      // On failure, render the error by calling function `renderError()`.
+      renderError(error);
+    }
   });
 }
 
